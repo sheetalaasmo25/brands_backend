@@ -1,3 +1,4 @@
+const Brands = require('../models/brandsModels');
 const Packages = require('../models/packagesModels')
 
 const createPackages = async (req,res)=>{
@@ -28,6 +29,55 @@ const getallPackages = async (req,res)=>{
     }
 }
 
+//getall packages for brands and user only active packages should show
+const getallactivePackages = async (req,res)=>{
+    try{
+
+        const package = await Packages.find({status:'active'})
+        res.json(package)
+
+    }
+    catch(error){
+        res.status(500).json({error:error.message})
+    }
+}
+
+const selectPackages = async (req, res) => {
+    const { packageId } = req.params;
+    const brandId = req.user.id;
+
+    try {
+        // Step 1: Confirm that the package exists
+        const selectedPackage = await Packages.findById(packageId);
+        if (!selectedPackage) {
+            return res.status(404).json({ error: "Package Not Found" });
+        }
+
+        // Step 2: Update the brand's isActive status to true and set selectedPackage
+        const updateResult = await Brands.updateOne(
+            { _id: brandId },
+            {
+                $set: {
+                    isActive: true,
+                    selectedPackage: packageId, // Store the selected package ID
+                },
+            }
+        );
+
+        // Check if the update was successful
+        if (updateResult.modifiedCount === 0) {
+            return res.status(400).json({ error: "Failed to activate brand or update package" });
+        }
+
+        res.status(200).json({ message: "Package selected successfully, brand activated" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+
+
 const getbyIdPackages = async (req,res)=>{
     const {id} = req.params;
     try{
@@ -44,7 +94,7 @@ const getbyIdPackages = async (req,res)=>{
 
 const updatebyIdPackages = async (req,res)=>{
     const {id} = req.params;
-    const {title,description,price,startDate,endDate}=req.body;
+    const {title,description,price,startDate,endDate,status}=req.body;
     try{
         const updatePackages = await Packages.findByIdAndUpdate(id,{
             title,
@@ -52,6 +102,7 @@ const updatebyIdPackages = async (req,res)=>{
             price,
             startDate,
             endDate,
+            status
         },{new:true});
         if(!updatePackages){
             return res.status(404).json({ msg: 'Packages not found' });
@@ -80,5 +131,7 @@ module.exports = {
     getallPackages,
     getbyIdPackages,
     updatebyIdPackages,
-    deletebyIdPackages
+    deletebyIdPackages,
+    selectPackages,
+    getallactivePackages
 }

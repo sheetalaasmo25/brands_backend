@@ -24,7 +24,7 @@ endDate:{
 status:{
     type:String,
     enum:['active','Inactive'],
-    default:'Inactive'
+    default:'active'
 },
 },{timestamps:true});
 const packages = mongoose.model('Packages',packageSchema);

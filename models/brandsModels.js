@@ -7,7 +7,7 @@ const brandsSchema = new mongoose.Schema({
     },
     images: {
         type: [String],
-        required: true, // URL or path to the image
+        required: true,
     },
     location: {
         type: String,
@@ -24,18 +24,26 @@ const brandsSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique: true, // Ensure unique email
+        unique: true,
     },
     status: {
         type: String,
-        enum: ['pending', 'approved'], // Enum values for status
-        default: 'pending',  // Default value is 'pending'
+        enum: ['pending', 'approved'],
+        default: 'pending',
+    },
+    isActive: {  // Correct field
+        type: Boolean,
+        default: false,
+    },
+    selectedPackage: { // New field to store selected package reference
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Packages', // Reference to Packages collection
+        default: null,
     },
     password: {
         type: String,
         required: true,
     },
-
     role: {
         type: String,
         default: 'store',

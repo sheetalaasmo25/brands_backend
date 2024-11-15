@@ -87,7 +87,7 @@ res.json({ token });
 
 exports.getOwnProfileBrands = async (req,res)=>{
     try{
-        const ownBrands = await Brands.findById(req.user.id).select('-password');
+        const ownBrands = await Brands.findById(req.user.id).select('-password') .populate('selectedPackage');;
         res.json(ownBrands);
     }
     catch (error) {
