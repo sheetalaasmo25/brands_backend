@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+
 const brandsNew = new mongoose.Schema({
     name:{
         type:String,

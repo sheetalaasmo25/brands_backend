@@ -6,22 +6,30 @@ const dealSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    discountAmount: {
-        type: Number,
-        required: true,
-    },
+    // discountAmount: {
+    //     type: Number,
+    //     required: true,
+    // },
     description: {
         type: String,
         required: true,
     },
-    dealPrice: {
-        type: Number,
+    couponCode: {
+        type: String,
         required: true,
     },
-    originalPrice: {
-        type: Number,
+    image: {
+        type: String,
         required: true,
     },
+    // dealPrice: {
+    //     type: Number,
+    //     required: true,
+    // },
+    // originalPrice: {
+    //     type: Number,
+    //     required: true,
+    // },
     startDate: {
         type: Date,
         required: true,
@@ -35,9 +43,23 @@ const dealSchema = new mongoose.Schema({
         enum: ['active', 'inactive'],
         default: 'inactive',
     },
-    brands: [{
+    isShow: {
+        type: Boolean,
+       default: 'false',
+    },
+    store: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Brands',
+        required: true,
+    }],
+    category: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true,
+    }],
+    brands: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'BrandsNew',
         required: true,
     }],
 }, { timestamps: true });
