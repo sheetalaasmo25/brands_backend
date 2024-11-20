@@ -102,7 +102,7 @@ router.post('/addbottom-banner',authMiddleware, adminMiddleware,  upload.single(
 router.get('/get-allbottom-banners', authMiddleware, adminMiddleware, BannerBottomController.getAllBanners);
 
 // Get a banner by ID
-router.get('/get-banner/:id', authMiddleware, adminMiddleware, BannerBottomController.getBannerById);
+router.get('/getbottom-banner/:id', authMiddleware, adminMiddleware, BannerBottomController.getBannerById);
 
 // Update a banner
 router.put('/updatebottom-banner/:id',authMiddleware, adminMiddleware,  upload.single('image'), BannerBottomController.updateBanner);
