@@ -1,7 +1,7 @@
 const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
 const BrandsNew = require('../models/brandNew');
-const Brands = require('../models/brandsModels');
+
 
 const create = async (req,res)=>{
     const {name} = req.body;

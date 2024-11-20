@@ -7,6 +7,7 @@ const  bannerController  = require('../controllers/bannerController');
 const BannerCenterController = require('../controllers/centerBannerController');
 const BannerBottomController = require('../controllers/bottomBannerController');
 const packagesController = require('../controllers/packagesController');
+const brandsNewController = require('../controllers/brandsNewController');
 const { authMiddleware } = require('../middleware/auth');
 const router = express.Router();
 
@@ -30,4 +31,6 @@ router.get('/get-all-banners', authMiddleware, bannerController.getAllBanners);
 router.get('/get-allcenter-banners', authMiddleware, BannerCenterController.getAllBanners);
 // Get all banners with pagination and search
 router.get('/get-allbottom-banners', authMiddleware, BannerBottomController.getAllBanners);
+//brands
+router.get('/brandsnew',authMiddleware, brandsNewController.getall);
 module.exports = router;

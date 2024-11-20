@@ -40,6 +40,11 @@ const brandsSchema = new mongoose.Schema({
         ref: 'Packages', // Reference to Packages collection
         default: null,
     },
+    brandsNew: { // New field for brandsNew
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'BrandsNew', // Reference to BrandsNew schema
+        default: null,
+    },
     password: {
         type: String,
         required: true,
