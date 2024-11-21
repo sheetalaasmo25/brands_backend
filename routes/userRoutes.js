@@ -24,6 +24,7 @@ router.get('/update-profile', authMiddleware, userController.updateProfile);
 router.get('/brands',authMiddleware, brandsController.getAllBrands);
 router.get('/getall-category', authMiddleware,categoryController.getAllCategories);
 router.get('/getall-deals',authMiddleware, dealsController.getAllDeals); 
+router.get('/getbyid-deals/:id',authMiddleware, dealsController.getDealById);  
 router.get('/package',authMiddleware, packagesController.getallactivePackages);    
 // Get all banners with pagination and search
 router.get('/get-all-banners', authMiddleware, bannerController.getAllBanners);
@@ -36,4 +37,11 @@ router.get('/brandsnew',authMiddleware, brandsNewController.getall);
 //ratings
 router.post('/rate', authMiddleware, userController.addRatingToBrand);
 router.get('/ratings', authMiddleware, userController.getUserRatings);
+router.post('/add-whishlist', authMiddleware, userController.addToWishlist);
+
+// Remove a deal from wishlist
+router.post('/remove-whishlist', authMiddleware, userController.removeFromWishlist);
+
+router.get('/getbyid-category/:id',authMiddleware, categoryController.getCategoryById);
+router.get('/brands/:id', authMiddleware, brandsController.getBrandById);
 module.exports = router;

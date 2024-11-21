@@ -178,6 +178,30 @@ const deleteDeal = async (req, res) => {
     }
 };
 
+
+const getAllWishlistDealsForAdmin = async (req, res) => {
+    try {
+        // Find all deals that are in any user's wishlist (populate 'wishlist' to get deals)
+        const users = await User.find().populate('wishlist');
+        
+        // Collect all deals from all users' wishlists
+        const wishlistDeals = [];
+        users.forEach(user => {
+            user.wishlist.forEach(deal => {
+                wishlistDeals.push(deal);
+            });
+        });
+
+        if (wishlistDeals.length === 0) {
+            return res.status(404).json({ msg: 'No deals found in any wishlist' });
+        }
+
+        res.status(200).json({ wishlistDeals });
+    } catch (error) {
+        res.status(500).json({ msg: 'Error fetching wishlist deals for admin', error });
+    }
+};
+
 module.exports = {
     addDeal,
     getAllDeals,
@@ -185,4 +209,5 @@ module.exports = {
     getDealById,
     updateDeal,
     deleteDeal,
+    getAllWishlistDealsForAdmin
 };

@@ -28,4 +28,6 @@ router.get('/getown-deals', authMiddleware,storeMiddleware,dealsController.getAl
 router.get('/getbyid-deals/:id',authMiddleware,storeMiddleware, dealsController.getDealById);
 router.put('/update-deals/:id',authMiddleware,storeMiddleware, upload.single('image'),dealsController.updateDeal);         // Update deal by ID
 router.delete('/delete-deals/:id',authMiddleware,storeMiddleware, dealsController.deleteDeal); 
+//whishlist deals
+router.get('/getwhishliast-deals', authMiddleware,storeMiddleware,dealsController.getAllWishlistDealsForAdmin)
 module.exports = router;

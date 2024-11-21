@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModles');
 const Brands = require('../models/brandsModels');
+const Deal = require('../models/dealsModels');
 // Controller for user signup
 const signup = async (req, res) => {
     const { phoneNumber, firstName, lastName, city, password } = req.body;
@@ -156,7 +157,7 @@ const login = async (req, res) => {
         expiresIn: '1h',
     });
 
-    res.json({ token });
+    res.json({ token,msg:"Login Successfully" });
 };
 
 // Get user profile
@@ -270,6 +271,76 @@ const getUserRatings = async (req, res) => {
     }
 };
 
+// Add deal to user's wishlist
+const addToWishlist = async (req, res) => {
+    const { dealId } = req.body;
+    const userId = req.user.id; // Assuming JWT authentication for user
+
+    try {
+        // Ensure the deal exists
+        const deal = await Deal.findById(dealId);
+        if (!deal) {
+            return res.status(404).json({ msg: 'Deal not found' });
+        }
+
+        // Check if the user is already in the wishlistUsers array
+        if (deal.wishlistUsers.includes(userId)) {
+            return res.status(400).json({ msg: 'Deal already in wishlist' });
+        }
+
+        // Add the user to wishlistUsers
+        deal.wishlistUsers.push(userId);
+        await deal.save();
+
+        res.status(200).json({
+            msg: 'Deal added to wishlist',
+            dealId,
+            isWishlist: true, // Include wishlist status in response
+        });
+    } catch (error) {
+        console.error("Error adding to wishlist:", error);
+        res.status(500).json({ msg: 'Error adding deal to wishlist', error });
+    }
+};
+
+
+
+
+
+const removeFromWishlist = async (req, res) => {
+    const { dealId } = req.body;
+    const userId = req.user.id; // Assuming JWT authentication for user
+
+    try {
+        // Ensure the deal exists
+        const deal = await Deal.findById(dealId);
+        if (!deal) {
+            return res.status(404).json({ msg: 'Deal not found' });
+        }
+
+        // Check if the user is in the wishlistUsers array
+        if (!deal.wishlistUsers.includes(userId)) {
+            return res.status(400).json({ msg: 'Deal not in wishlist' });
+        }
+
+        // Remove the user from the wishlistUsers array
+        deal.wishlistUsers = deal.wishlistUsers.filter(id => !id.equals(userId));
+        await deal.save();
+
+        res.status(200).json({
+            msg: 'Deal removed from wishlist',
+            dealId,
+            isWishlist: false, // Include wishlist status in response
+        });
+    } catch (error) {
+        console.error("Error removing from wishlist:", error);
+        res.status(500).json({ msg: 'Error removing deal from wishlist', error });
+    }
+};
+
+
+
+
 module.exports = {
     signup,
     login,
@@ -280,6 +351,8 @@ module.exports = {
     getProfile,
     updateProfile,
     addRatingToBrand, 
-    getUserRatings
+    getUserRatings,
+    addToWishlist,
+    removeFromWishlist
 };
 

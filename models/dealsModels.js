@@ -47,6 +47,10 @@ const dealSchema = new mongoose.Schema({
         type: Boolean,
        default: 'false',
     },
+    isWhishlist: {
+        type: Boolean,
+       default: 'false',
+    },
     store: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Brands',
@@ -62,6 +66,10 @@ const dealSchema = new mongoose.Schema({
         ref: 'BrandsNew',
         required: true,
     }],
+    wishlistUsers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }]
 }, { timestamps: true });
 
 const Deal = mongoose.model('Deal', dealSchema);
