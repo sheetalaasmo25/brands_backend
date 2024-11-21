@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+/// Updated Brands Schema without comment field
 const brandsSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -9,13 +10,13 @@ const brandsSchema = new mongoose.Schema({
         type: [String],
         required: true,
     },
-    location: {
+    area: {
         type: String,
         required: true,
     },
-    landmark: {
+    city: {
         type: String,
-        required: false,
+        required: true,
     },
     description: {
         type: String,
@@ -31,18 +32,18 @@ const brandsSchema = new mongoose.Schema({
         enum: ['pending', 'approved'],
         default: 'pending',
     },
-    isActive: {  // Correct field
+    isActive: {
         type: Boolean,
         default: false,
     },
-    selectedPackage: { // New field to store selected package reference
+    selectedPackage: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Packages', // Reference to Packages collection
+        ref: 'Packages',
         default: null,
     },
-    brandsNew: { // New field for brandsNew
+    brandsNew: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'BrandsNew', // Reference to BrandsNew schema
+        ref: 'BrandsNew',
         default: null,
     },
     password: {
@@ -53,6 +54,19 @@ const brandsSchema = new mongoose.Schema({
         type: String,
         default: 'store',
     },
+    ratings: [{  // Updated to only include user and rating
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User', // Reference to User model
+            required: true,
+        },
+        rating: {
+            type: Number,
+            required: true,
+            min: 1,
+            max: 5,
+        },
+    }],
 }, { timestamps: true });
 
 const Brands = mongoose.model('Brands', brandsSchema);

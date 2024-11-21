@@ -60,9 +60,9 @@ exports.addBrand = async (req, res) => {
         const brand = new Brands({
             name: req.body.name,
             images: imageUrls,
-            location: req.body.location,
+            area: req.body.area,
             description: req.body.description,
-            landmark: req.body.landmark || null,
+            city: req.body.city || null,
             email,
             password: hashedPassword,
             status,
@@ -116,9 +116,9 @@ exports.updateOwnProfileBrands = async (req, res) => {
 
         // Update the main brand fields
         brand.name = req.body.name || brand.name;
-        brand.location = req.body.location || brand.location;
+        brand.area = req.body.area || brand.area;
         brand.description = req.body.description || brand.description;
-        brand.landmark = req.body.landmark || brand.landmark;
+        brand.city = req.body.city || brand.city;
         brand.email = req.body.email || brand.email;
 
         // Update the related BrandsNew document if necessary
@@ -161,11 +161,11 @@ exports.getAllBrands = async (req, res) => {
             name: { $regex: search, $options: 'i' } // case-insensitive search for name
         } : {};
 
-        // Fetch brands with pagination and search
+        // Fetch brands with pagination, search, and populate brandsNew
         const brands = await Brands.find(searchQuery)
             .skip((page - 1) * limit)  // Skip based on current page and limit
             .limit(Number(limit))      // Limit the number of results per page
-            
+            .populate('brandsNew');     // Populate the 'brandsNew' reference
 
         const totalBrands = await Brands.countDocuments(searchQuery); // Get total count of brands for pagination info
 
@@ -180,6 +180,7 @@ exports.getAllBrands = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 exports.getBrandById = async (req, res) => {
     try {
@@ -209,9 +210,9 @@ exports.updateBrandById = async (req, res) => {
 
         // Update the main brand fields
         brand.name = req.body.name || brand.name;
-        brand.location = req.body.location || brand.location;
+        brand.area = req.body.area || brand.area;
         brand.description = req.body.description || brand.description;
-        brand.landmark = req.body.landmark || brand.landmark;
+        brand.city = req.body.city || brand.city;
         brand.email = req.body.email || brand.email;
 
         // Update the related BrandsNew document if necessary
@@ -252,3 +253,4 @@ exports.deleteBrandById = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+

@@ -33,4 +33,7 @@ router.get('/get-allcenter-banners', authMiddleware, BannerCenterController.getA
 router.get('/get-allbottom-banners', authMiddleware, BannerBottomController.getAllBanners);
 //brands
 router.get('/brandsnew',authMiddleware, brandsNewController.getall);
+//ratings
+router.post('/rate', authMiddleware, userController.addRatingToBrand);
+router.get('/ratings', authMiddleware, userController.getUserRatings);
 module.exports = router;

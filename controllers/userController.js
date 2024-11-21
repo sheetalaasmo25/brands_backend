@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModles');
-
+const Brands = require('../models/brandsModels');
 // Controller for user signup
 const signup = async (req, res) => {
     const { phoneNumber, firstName, lastName, city, password } = req.body;
@@ -195,6 +195,81 @@ const updateProfile = async (req, res) => {
     }
 };
 
+
+// API to add a rating for a store (without comment)
+const addRatingToBrand = async (req, res) => {
+    const { brandId, rating } = req.body;  // Expect brandId and rating from the body
+
+    if (!brandId || !rating) {
+        return res.status(400).json({ msg: 'Brand ID and rating are required' });
+    }
+
+    const userId = req.user.id;  // Get user ID from the JWT token
+
+    if (!userId) {
+        return res.status(401).json({ msg: 'Unauthorized' });
+    }
+
+    try {
+        // Find the brand by ID
+        const brand = await Brands.findById(brandId);
+        if (!brand) {
+            return res.status(404).json({ msg: 'Brand not found' });
+        }
+
+        // Check if the user has already rated this brand
+        const existingRating = brand.ratings.find(rating => rating.user.toString() === userId.toString());
+        if (existingRating) {
+            return res.status(400).json({ msg: 'You have already rated this brand' });
+        }
+
+        // Add the new rating to the brand
+        brand.ratings.push({
+            user: userId,
+            rating,
+        });
+
+        // Save the updated brand document
+        await brand.save();
+
+        res.status(200).json({ msg: 'Rating added successfully' });
+    } catch (error) {
+        res.status(500).json({ msg: 'Error adding rating', error: error.message });
+    }
+};
+
+// API to get all ratings of the logged-in user
+const getUserRatings = async (req, res) => {
+    const userId = req.user.id; // Get user ID from JWT token
+
+    if (!userId) {
+        return res.status(401).json({ msg: 'Unauthorized' });
+    }
+
+    try {
+        // Find all brands where the user has provided a rating
+        const brands = await Brands.find({ 'ratings.user': userId }).select('name ratings');
+        
+        // Extract ratings data from the brands
+        const userRatings = brands.map(brand => {
+            const rating = brand.ratings.find(rating => rating.user.toString() === userId.toString());
+            return {
+                brandName: brand.name,
+                rating: rating.rating,
+                brandId: brand._id,
+            };
+        });
+
+        if (userRatings.length === 0) {
+            return res.status(404).json({ msg: 'No ratings found for this user' });
+        }
+
+        res.status(200).json({ ratings: userRatings });
+    } catch (error) {
+        res.status(500).json({ msg: 'Error retrieving ratings', error: error.message });
+    }
+};
+
 module.exports = {
     signup,
     login,
@@ -203,6 +278,8 @@ module.exports = {
     updateUserById,
     deleteUserById,
     getProfile,
-    updateProfile, // Add the updateProfile function here
+    updateProfile,
+    addRatingToBrand, 
+    getUserRatings
 };
 
