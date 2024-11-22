@@ -125,13 +125,18 @@ const deletebyId = async (req, res) => {
             return res.status(404).json({ msg: 'Brand New not found' });
         }
 
-        // Delete image from S3
-        const deleteParams = {
-            Bucket: process.env.AWS_S3_BUCKET,
-            Key: brandNew.image.split('.com/')[1], // Extract S3 key from the image URL
-        };
+        // Check if image exists and is a valid string
+        if (brandNew.image && typeof brandNew.image === 'string') {
+            // Delete image from S3
+            const deleteParams = {
+                Bucket: process.env.AWS_S3_BUCKET,
+                Key: brandNew.image.split('.com/')[1], // Extract S3 key from the image URL
+            };
 
-        await s3Client.send(new DeleteObjectCommand(deleteParams));
+            await s3Client.send(new DeleteObjectCommand(deleteParams));
+        } else {
+            console.error('Image URL is invalid or missing');
+        }
 
         // Use findByIdAndDelete instead of remove
         await BrandsNew.findByIdAndDelete(id);
@@ -142,6 +147,7 @@ const deletebyId = async (req, res) => {
         res.status(500).json({ msg: 'Error deleting BrandsNew', error });
     }
 };
+
 
 module.exports={
     create,
