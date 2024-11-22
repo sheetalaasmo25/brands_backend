@@ -131,7 +131,7 @@ const getDealById = async (req, res) => {
 // Update a deal by ID
 const updateDeal = async (req, res) => {
     const { id } = req.params;
-    const { title, store, description, startDate, endDate, brands, category, couponCode } = req.body;
+    const { title, store, description, startDate, endDate, brands, category, couponCode,status,isShow } = req.body;
     const file = req.file;
 
     try {
@@ -149,7 +149,9 @@ const updateDeal = async (req, res) => {
         if (brands) deal.brands = brands;
         if (category) deal.category = category;
         if (couponCode) deal.couponCode = couponCode;
-
+        if (status) deal.status = status;
+        if (isShow) deal.isShow = isShow;
+        
         // If a new image file is provided, upload it to S3
         if (file) {
             deal.image = await uploadImageToS3(file);
