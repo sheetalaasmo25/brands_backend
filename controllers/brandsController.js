@@ -184,7 +184,7 @@ exports.getAllBrands = async (req, res) => {
 
 exports.getBrandById = async (req, res) => {
     try {
-        const brand = await Brands.findById(req.params.id);
+        const brand = await Brands.findById(req.params.id).populate('brandsNew');
         if (!brand) return res.status(404).json({ error: 'Brand not found' });
         res.status(200).json(brand);
     } catch (error) {
