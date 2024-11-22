@@ -1,4 +1,5 @@
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const moment = require('moment');
 const Brands = require('../models/brandsModels');
 const BrandsNew = require('../models/brandNew');
 const bcrypt = require('bcryptjs');
@@ -149,9 +150,6 @@ exports.updateOwnProfileBrands = async (req, res) => {
     }
 };
 
-
-
-
 exports.getAllBrands = async (req, res) => {
     try {
         const { page = 1, limit = 10, search = "" } = req.query; // Default to page 1, limit 10, and no search
@@ -253,5 +251,44 @@ exports.deleteBrandById = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+
+exports.incrementBrandCount = async (req, res) => {
+    const { brandId, count, date } = req.body;
+    const currentDate = moment(date).utc().startOf('day'); // Using UTC for consistency
+
+    try {
+        const brand = await Brands.findById(brandId);
+        if (!brand) {
+            return res.status(404).json({ error: 'Brand not found' });
+        }
+
+        // Check if there's already a count entry for the current day
+        const existingCount = brand.countHistory?.find(record =>
+            moment(record.date).isSame(currentDate, 'day')
+        );
+
+        if (existingCount) {
+            return res.status(400).json({ msg: 'Count already incremented for today' });
+        }
+
+        // Increment the count and update count history
+        brand.count = (brand.count || 0) + 1;
+
+        // Initialize countHistory if it's undefined and then push today's count
+        brand.countHistory = brand.countHistory || [];
+        brand.countHistory.push({
+            date: currentDate.toDate(), // Convert to Date object before saving
+            countIncremented: 1
+        });
+
+        await brand.save(); // Save the updated brand with incremented count
+
+        res.status(200).json({ msg: 'Count incremented successfully', brand });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 
 

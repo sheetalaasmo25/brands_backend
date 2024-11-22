@@ -67,6 +67,21 @@ const brandsSchema = new mongoose.Schema({
             max: 5,
         },
     }],
+    count: {
+        type: Number,
+        default: 0, // Starting count
+    },
+
+    countHistory: [{
+        date: {
+            type: Date,
+            required: true,
+        },
+        countIncremented: {
+            type: Number,
+            required: true,
+        },
+    }],
 }, { timestamps: true });
 
 const Brands = mongoose.model('Brands', brandsSchema);

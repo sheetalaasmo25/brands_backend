@@ -44,4 +44,5 @@ router.post('/remove-whishlist', authMiddleware, userController.removeFromWishli
 
 router.get('/getbyid-category/:id',authMiddleware, categoryController.getCategoryById);
 router.get('/brands/:id', authMiddleware, brandsController.getBrandById);
+router.post('/store-visit-count',authMiddleware, brandsController.incrementBrandCount);
 module.exports = router;

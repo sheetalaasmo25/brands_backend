@@ -69,7 +69,8 @@ const dealSchema = new mongoose.Schema({
     wishlistUsers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    }]
+    }],
+
 }, { timestamps: true });
 
 const Deal = mongoose.model('Deal', dealSchema);
