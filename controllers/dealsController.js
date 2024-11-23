@@ -60,23 +60,31 @@ const addDeal = async (req, res) => {
 // Get all deals with pagination and search
 const getAllDeals = async (req, res) => {
     const { page = 1, limit = 10, searchTerm = "" } = req.query;
+    const userId = req.user.id; // Assuming JWT authentication for user
 
     try {
-        const filter = searchTerm ? {
-            $or: [
-                { title: { $regex: searchTerm, $options: 'i' } },
-                { description: { $regex: searchTerm, $options: 'i' } },
-            ],
-        } : {};
+        // Set up filter for search functionality
+        const filter = searchTerm
+            ? {
+                $or: [
+                    { title: { $regex: searchTerm, $options: 'i' } },
+                    { description: { $regex: searchTerm, $options: 'i' } },
+                ],
+            }
+            : {};
 
+        // Count total deals based on the filter
         const totalDeals = await Deal.countDocuments(filter);
+
+        // Fetch deals with pagination and populate fields
         const deals = await Deal.find(filter)
             .skip((page - 1) * limit)
             .limit(Number(limit))
-            .populate('brands')
-            .populate('store')
-            .populate('category');
+            .populate('brands') // Ensure the 'brands' field is populated correctly in the schema
+            .populate('store')  // Ensure the 'store' field is populated correctly in the schema
+            .populate('category'); // Ensure the 'category' field is populated correctly in the schema
 
+        // Send response with the deals array
         res.status(200).json({
             totalDeals,
             totalPages: Math.ceil(totalDeals / limit),
@@ -84,9 +92,11 @@ const getAllDeals = async (req, res) => {
             deals,
         });
     } catch (error) {
+        console.error("Error fetching deals:", error);
         res.status(500).json({ msg: 'Error fetching deals', error });
     }
 };
+
 
 // Get own deals for a specific store
 const getAllOwnDeals = async (req, res) => {

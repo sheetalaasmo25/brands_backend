@@ -41,6 +41,7 @@ router.post('/add-whishlist', authMiddleware, userController.addToWishlist);
 
 // Remove a deal from wishlist
 router.post('/remove-whishlist', authMiddleware, userController.removeFromWishlist);
+router.get('/getallown-whishlist', authMiddleware, userController.getOwnWishlistDeals);
 
 router.get('/getbyid-category/:id',authMiddleware, categoryController.getCategoryById);
 router.get('/brands/:id', authMiddleware, brandsController.getBrandById);

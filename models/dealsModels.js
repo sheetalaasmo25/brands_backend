@@ -1,4 +1,3 @@
-// models/Deal.js
 const mongoose = require('mongoose');
 
 const dealSchema = new mongoose.Schema({
@@ -6,10 +5,6 @@ const dealSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    // discountAmount: {
-    //     type: Number,
-    //     required: true,
-    // },
     description: {
         type: String,
         required: true,
@@ -22,14 +17,6 @@ const dealSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    // dealPrice: {
-    //     type: Number,
-    //     required: true,
-    // },
-    // originalPrice: {
-    //     type: Number,
-    //     required: true,
-    // },
     startDate: {
         type: Date,
         required: true,
@@ -45,11 +32,11 @@ const dealSchema = new mongoose.Schema({
     },
     isShow: {
         type: Boolean,
-       default: 'false',
+        default: false,
     },
-    isWhishlist: {
+    isWishlist: { // Corrected the typo here
         type: Boolean,
-       default: 'false',
+        default: false,
     },
     store: [{
         type: mongoose.Schema.Types.ObjectId,

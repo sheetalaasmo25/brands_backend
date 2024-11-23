@@ -290,18 +290,24 @@ const addToWishlist = async (req, res) => {
 
         // Add the user to wishlistUsers
         deal.wishlistUsers.push(userId);
+
+        // Update the 'isWishlist' field to true since the user has added the deal to their wishlist
+        deal.isWishlist = true;
+
+        // Save the deal with the updated wishlist
         await deal.save();
 
         res.status(200).json({
             msg: 'Deal added to wishlist',
             dealId,
-            isWishlist: true, // Include wishlist status in response
+            isWishlist: deal.isWishlist, // Return the updated wishlist status
         });
     } catch (error) {
         console.error("Error adding to wishlist:", error);
         res.status(500).json({ msg: 'Error adding deal to wishlist', error });
     }
 };
+
 
 
 
@@ -325,16 +331,49 @@ const removeFromWishlist = async (req, res) => {
 
         // Remove the user from the wishlistUsers array
         deal.wishlistUsers = deal.wishlistUsers.filter(id => !id.equals(userId));
+
+        // Update the 'isWishlistNew' field to false since the user removed the deal from the wishlist
+        if (deal.wishlistUsers.length === 0) {
+            // If no users are left in the wishlist, set isWishlistNew to false
+            deal.isWishlist = false;
+        }
+
+        // Save the deal with the updated wishlist
         await deal.save();
 
         res.status(200).json({
             msg: 'Deal removed from wishlist',
             dealId,
-            isWishlist: false, // Include wishlist status in response
+            isWishlist: deal.isWishlist, // Return the updated wishlist status
         });
     } catch (error) {
         console.error("Error removing from wishlist:", error);
         res.status(500).json({ msg: 'Error removing deal from wishlist', error });
+    }
+};
+
+const getOwnWishlistDeals = async (req, res) => {
+    const userId = req.user.id; // Assuming JWT authentication for user
+
+    try {
+        // Fetch all deals where the user is in the wishlistUsers array
+        const deals = await Deal.find({ wishlistUsers: userId })
+            .populate('brands')
+            .populate('store')
+            .populate('category');
+
+        if (deals.length === 0) {
+            return res.status(404).json({ msg: 'No deals found in wishlist' });
+        }
+
+        // Send response with the list of deals
+        res.status(200).json({
+            msg: 'Wishlist deals fetched successfully',
+            deals,
+        });
+    } catch (error) {
+        console.error("Error fetching wishlist deals:", error);
+        res.status(500).json({ msg: 'Error fetching wishlist deals', error });
     }
 };
 
@@ -353,6 +392,7 @@ module.exports = {
     addRatingToBrand, 
     getUserRatings,
     addToWishlist,
-    removeFromWishlist
+    removeFromWishlist,
+    getOwnWishlistDeals
 };
 
