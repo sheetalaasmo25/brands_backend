@@ -157,7 +157,7 @@ const login = async (req, res) => {
         expiresIn: '1h',
     });
 
-    res.json({ token,msg:"Login Successfully" });
+    res.json({ token,msg:"Login Successfully",role:user.role });
 };
 
 // Get user profile

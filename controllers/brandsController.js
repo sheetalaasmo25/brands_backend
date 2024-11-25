@@ -92,7 +92,7 @@ exports.brandLogin = async (req, res) => {
         return res.status(400).json({ msg: 'Invalid credentials' });
 
 const token = jwt.sign({ id: brand._id, role: brand.role }, process.env.JWT_SECRET);
-res.json({ token });
+res.json({ token,msg:"Login Store Successfully." ,role:brand.role});
 }
 
 exports.getOwnProfileBrands = async (req,res)=>{
