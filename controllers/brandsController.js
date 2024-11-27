@@ -82,6 +82,7 @@ exports.addBrand = async (req, res) => {
 
 
 exports.brandLogin = async (req, res) => {
+    console.log("Working login...............")
     const { email, password } = req.body;
     const brand = await Brands.findOne({ email });
     if (!brand) {
