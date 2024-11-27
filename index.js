@@ -6,7 +6,13 @@ const adminRoutes = require('./routes/adminRoutes');
 const brandRoutes = require('./routes/brandRoutes')
 const app = express();
 const PORT = process.env.PORT || 5000;
-app.use(cors());
+const corsOptions = {
+    origin: '*',  
+    methods: ['GET', 'POST'], // Allowed methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  };
+  
+  app.use(cors(corsOptions));
 // Middleware
 app.use(express.json());
 

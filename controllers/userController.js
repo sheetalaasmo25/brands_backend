@@ -163,7 +163,7 @@ const login = async (req, res) => {
 // Get user profile
 const getProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('-password'); // Exclude password from response
+        const user = await User.findById(req.user.id).select('-password');
         res.json(user);
     } catch (error) {
         res.status(500).json({ msg: 'Error fetching user profile', error });

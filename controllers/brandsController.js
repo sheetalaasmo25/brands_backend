@@ -100,13 +100,15 @@ exports.getOwnProfileBrands = async (req,res)=>{
     console.log("Working ")
     try{
         console.log("Working try")
-        const ownBrands = await Brands.findById(req.user.id).select('-password') .populate('selectedPackage');;
+        const ownBrands = await Brands.findById(req.user.id).select('-password').populate('selectedPackage');
         res.json(ownBrands);
     }
     catch (error) {
     res.status(500).json({ msg: 'Error fetching Brands profile', error });
 }
 }
+
+
 
 exports.updateOwnProfileBrands = async (req, res) => {
     try {
