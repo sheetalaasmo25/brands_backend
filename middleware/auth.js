@@ -27,6 +27,7 @@ const adminMiddleware = (req, res, next) => {
 
 // Middleware to check if user is admin
 const storeMiddleware = (req, res, next) => {
+    console.log("store Middleware")
     if (req.user.role !== 'store') {
         return res.status(403).json({ msg: 'Access denied, store only' });
     }

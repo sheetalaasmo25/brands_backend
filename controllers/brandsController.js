@@ -96,7 +96,9 @@ res.json({ token,msg:"Login Store Successfully." ,role:brand.role});
 }
 
 exports.getOwnProfileBrands = async (req,res)=>{
+    console.log("Working ")
     try{
+        console.log("Working try")
         const ownBrands = await Brands.findById(req.user.id).select('-password') .populate('selectedPackage');;
         res.json(ownBrands);
     }
