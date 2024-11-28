@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const corsOptions = {
     origin: '*',  
-    methods: ['GET', 'POST'], // Allowed methods
+    methods: ['GET', 'POST','PUT','DELETE'], // Allowed methods
     allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
   };
   
