@@ -23,7 +23,7 @@ router.post('/select-package/:packageId',authMiddleware,storeMiddleware, package
 router.get('/getall-category', authMiddleware,storeMiddleware,categoryController.getAllCategories);
 router.get('/brandsnew',authMiddleware,storeMiddleware, brandsNewController.getall);
 //add deals store
-router.post('/add-deals',authMiddleware, storeMiddleware,  upload.single('image'),dealsController.addDeal);
+router.post('/add-deals'  ,upload.single('image'),dealsController.addDeal);
 router.get('/getown-deals', authMiddleware,storeMiddleware,dealsController.getAllOwnDeals);
 router.get('/getbyid-deals/:id',authMiddleware,storeMiddleware, dealsController.getDealById);
 router.put('/update-deals/:id',authMiddleware,storeMiddleware, upload.single('image'),dealsController.updateDeal);         // Update deal by ID
