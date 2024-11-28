@@ -81,20 +81,20 @@ exports.addBrand = async (req, res) => {
 
 
 
-exports.brandLogin = async (req, res) => {
-    console.log("Working login...............")
-    const { email, password } = req.body;
-    const brand = await Brands.findOne({ email });
-    if (!brand) {
-        return res.status(400).json({ msg: 'Invalid credentials' });
-    }
-    const match = await bcrypt.compare(password, brand.password);
-    if (!match)
-        return res.status(400).json({ msg: 'Invalid credentials' });
+// exports.brandLogin = async (req, res) => {
+//     console.log("Working login...............")
+//     const { email, password } = req.body;
+//     const brand = await Brands.findOne({ email });
+//     if (!brand) {
+//         return res.status(400).json({ msg: 'Invalid credentials' });
+//     }
+//     const match = await bcrypt.compare(password, brand.password);
+//     if (!match)
+//         return res.status(400).json({ msg: 'Invalid credentials' });
 
-const token = jwt.sign({ id: brand._id, role: brand.role }, process.env.JWT_SECRET);
-res.json({ token,msg:"Login Store Successfully." ,role:brand.role});
-}
+// const token = jwt.sign({ id: brand._id, role: brand.role }, process.env.JWT_SECRET);
+// res.json({ token,msg:"Login Store Successfully." ,role:brand.role});
+// }
 
 // exports.getOwnProfileBrands = async (req,res)=>{
 //     console.log("Working ")
@@ -107,19 +107,42 @@ res.json({ token,msg:"Login Store Successfully." ,role:brand.role});
 //     res.status(500).json({ msg: 'Error fetching Brands profile', error });
 // }
 // }
+exports.brandLogin = async (req, res) => {
+    console.log("Working login...............")
+    const { email, password } = req.body;
+    const brand = await Brands.findOne({ email });
+    
+    if (!brand) {
+        return res.status(400).json({ msg: 'Invalid credentials' });
+    }
+    
+    const match = await bcrypt.compare(password, brand.password);
+    
+    if (!match) {
+        return res.status(400).json({ msg: 'Invalid credentials' });
+    }
 
+    const token = jwt.sign({ id: brand._id, role: brand.role }, process.env.JWT_SECRET);
+
+    // Include _id in the response along with the token and role
+    res.json({
+        token,
+        msg: "Login Store Successfully.",
+        role: brand.role,
+        _id: brand._id  // Adding _id to the response
+    });
+}
 
 exports.getOwnProfileBrands = async (req, res) => {
-    console.log("Working");
+    const { id } = req.params;  // Get the ID from the route parameters
 
     try {
-       
-        if (!req.user || !req.user.id) {
-            return res.status(400).json({ msg: 'User not authenticated or user ID is missing' });
+        if (!id) {
+            return res.status(400).json({ msg: 'User ID is missing in the parameters' });
         }
 
         console.log("Working try");
-        const ownBrands = await Brands.findById(req.user.id)
+        const ownBrands = await Brands.findById(id)  // Use the ID from the route params
             .select('-password')  
             .populate('selectedPackage'); 
 
@@ -127,14 +150,39 @@ exports.getOwnProfileBrands = async (req, res) => {
             return res.status(404).json({ msg: 'Brands not found for this user' });
         }
 
-        
         res.json(ownBrands);
     } catch (error) {
-      
         console.error(error);
         res.status(500).json({ msg: 'Error fetching Brands profile', error });
     }
 };
+
+// exports.getOwnProfileBrands = async (req, res) => {
+//     console.log("Working");
+
+//     try {
+       
+//         if (!req.user || !req.user.id) {
+//             return res.status(400).json({ msg: 'User not authenticated or user ID is missing' });
+//         }
+
+//         console.log("Working try");
+//         const ownBrands = await Brands.findById(req.user.id)
+//             .select('-password')  
+//             .populate('selectedPackage'); 
+
+//         if (!ownBrands) {
+//             return res.status(404).json({ msg: 'Brands not found for this user' });
+//         }
+
+        
+//         res.json(ownBrands);
+//     } catch (error) {
+//         // Catch any other errors
+//         console.error(error);
+//         res.status(500).json({ msg: 'Error fetching Brands profile', error });
+//     }
+// };
 
 
 exports.updateOwnProfileBrands = async (req, res) => {
