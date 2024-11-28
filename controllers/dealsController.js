@@ -26,6 +26,7 @@ async function uploadImageToS3(file) {
 
 // Add a new deal
 const addDeal = async (req, res) => {
+    console.log("Workinggg..........")
     const { title, store, description, startDate, endDate, brands, category, couponCode } = req.body;
     const file = req.file;
 
