@@ -96,18 +96,45 @@ const token = jwt.sign({ id: brand._id, role: brand.role }, process.env.JWT_SECR
 res.json({ token,msg:"Login Store Successfully." ,role:brand.role});
 }
 
-exports.getOwnProfileBrands = async (req,res)=>{
-    console.log("Working ")
-    try{
-        console.log("Working try")
-        const ownBrands = await Brands.findById(req.user.id).select('-password').populate('selectedPackage');
-        res.json(ownBrands);
-    }
-    catch (error) {
-    res.status(500).json({ msg: 'Error fetching Brands profile', error });
-}
-}
+// exports.getOwnProfileBrands = async (req,res)=>{
+//     console.log("Working ")
+//     try{
+//         console.log("Working try")
+//         const ownBrands = await Brands.findById(req.user.id).select('-password').populate('selectedPackage');
+//         res.json(ownBrands);
+//     }
+//     catch (error) {
+//     res.status(500).json({ msg: 'Error fetching Brands profile', error });
+// }
+// }
 
+
+exports.getOwnProfileBrands = async (req, res) => {
+    console.log("Working");
+
+    try {
+        // Check if user is authenticated and has a valid ID
+        if (!req.user || !req.user.id) {
+            return res.status(400).json({ msg: 'User not authenticated or user ID is missing' });
+        }
+
+        console.log("Working try");
+        const ownBrands = await Brands.findById(req.user.id)
+            .select('-password')  // Exclude the password field from the response
+            .populate('selectedPackage');  // Populate the selectedPackage field
+
+        if (!ownBrands) {
+            return res.status(404).json({ msg: 'Brands not found for this user' });
+        }
+
+        // Send the response
+        res.json(ownBrands);
+    } catch (error) {
+        // Catch any other errors
+        console.error(error);
+        res.status(500).json({ msg: 'Error fetching Brands profile', error });
+    }
+};
 
 
 exports.updateOwnProfileBrands = async (req, res) => {
