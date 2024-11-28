@@ -16,7 +16,7 @@ router.post('/brands', upload.array('images', 10),brandsController.addBrand);
 router.post('/login', brandsController.brandLogin);
 
 
-router.get('/getown-profile-brands',brandsController.getOwnProfileBrands);
+router.get('/getown-profile-brands', authMiddleware,storeMiddleware,brandsController.getOwnProfileBrands);
 router.put('/updateown-profile', upload.array('images', 10),authMiddleware,storeMiddleware,brandsController.updateOwnProfileBrands);
 router.get('/package',authMiddleware,storeMiddleware, packagesController.getallactivePackages);  
 router.post('/select-package/:packageId',authMiddleware,storeMiddleware, packagesController.selectPackages);
