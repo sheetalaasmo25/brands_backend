@@ -32,7 +32,7 @@ async function uploadImagesToS3(files) {
 }
 
 exports.addBrand = async (req, res) => {
-    const { email, password, brandNewData } = req.body; // Assuming brandNewData contains name and image for BrandsNew
+    const { email, password, brandNewData } = req.body; 
     try {
         // Check if the brand with the provided email already exists
         const existingBrand = await Brands.findOne({ email });

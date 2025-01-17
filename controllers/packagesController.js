@@ -2,14 +2,15 @@ const Brands = require('../models/brandsModels');
 const Packages = require('../models/packagesModels')
 
 const createPackages = async (req,res)=>{
-    const {title,description,price,startDate,endDate}=req.body;
+    const {title,description,price,addDeals,startDate,endDate}=req.body;
     try{
       const packages = new Packages({
         title,
         description,
         price,
         startDate,
-        endDate
+        endDate,
+        addDeals
       });
       await packages.save();
       res.status(201).json({msg:'Package Created Successfully',packages})
@@ -94,12 +95,13 @@ const getbyIdPackages = async (req,res)=>{
 
 const updatebyIdPackages = async (req,res)=>{
     const {id} = req.params;
-    const {title,description,price,startDate,endDate,status}=req.body;
+    const {title,description,price,startDate,endDate,addDeals,status}=req.body;
     try{
         const updatePackages = await Packages.findByIdAndUpdate(id,{
             title,
             description,
             price,
+            addDeals,
             startDate,
             endDate,
             status

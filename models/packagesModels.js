@@ -21,6 +21,10 @@ endDate:{
     type:Date,
     requierd:true
 },
+addDeals:{
+    type:Number,
+    required:true
+},
 status:{
     type:String,
     enum:['active','Inactive'],
