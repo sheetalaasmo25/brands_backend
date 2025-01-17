@@ -36,11 +36,16 @@ const brandsSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
-    selectedPackage: {
+    package: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Packages',
         default: null,
     },
+    packageAmount:{
+        type: Number,
+        required: true,
+    },
+    productCategory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductCategory', required: true }], 
     brandsNew: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'BrandsNew',

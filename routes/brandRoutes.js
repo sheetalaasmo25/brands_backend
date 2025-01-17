@@ -11,16 +11,17 @@ const packagesController = require('../controllers/packagesController');
 const storage = multer.memoryStorage(); // Store files in memory
 const upload = multer({ storage });
 
-
+router.get('/package', packagesController.getallactivePackages); 
+router.post('/select-package/:packageId', packagesController.selectPackages);
+router.get('/getall-category',categoryController.getAllCategories);
 router.post('/brands', upload.array('images', 10),brandsController.addBrand);
-router.post('/login', brandsController.brandLogin);
+router.post('/login', brandsController.brandLogin); 
 
 
 router.get('/getown-profile-brands/:id',brandsController.getOwnProfileBrands);
 router.put('/updateown-profile', upload.array('images', 10),authMiddleware,storeMiddleware,brandsController.updateOwnProfileBrands);
-router.get('/package',authMiddleware,storeMiddleware, packagesController.getallactivePackages);  
-router.post('/select-package/:packageId',authMiddleware,storeMiddleware, packagesController.selectPackages);
-router.get('/getall-category', authMiddleware,storeMiddleware,categoryController.getAllCategories);
+
+
 router.get('/brandsnew',authMiddleware,storeMiddleware, brandsNewController.getall);
 //add deals store
 router.post('/add-deals'  ,upload.single('image'),dealsController.addDeal);

@@ -1,5 +1,6 @@
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const moment = require('moment');
+const mongoose = require("mongoose");
 const Brands = require('../models/brandsModels');
 const BrandsNew = require('../models/brandNew');
 const bcrypt = require('bcryptjs');
@@ -31,46 +32,114 @@ async function uploadImagesToS3(files) {
     return imageUrls;
 }
 
+// exports.addBrand = async (req, res) => {
+//     const { email, password, brandNewData } = req.body; 
+//     try {
+//         // Check if the brand with the provided email already exists
+//         const existingBrand = await Brands.findOne({ email });
+//         if (existingBrand) {
+//             return res.status(400).json({ msg: 'Brand already exists' });
+//         }
+
+//         // Hash the password
+//         const salt = await bcrypt.genSalt(10);
+//         const hashedPassword = await bcrypt.hash(password, salt);
+
+//         // Upload images to S3
+//         const imageUrls = await uploadImagesToS3(req.files);
+
+//         // Create the new BrandsNew document
+//         const newBrandNew = new BrandsNew({
+//             name: brandNewData?.name,
+//             image: brandNewData?.image, // You can upload this image to S3 too if necessary
+//         });
+//         await newBrandNew.save(); // Save the BrandsNew document
+
+//         // Determine the status based on the user's role
+//         const status = req.user && req.user.role === 'admin' ? 'approved' : 'pending';
+
+//         // Create a new brand with the determined status
+//         const brand = new Brands({
+//             name: req.body.name,
+//             images: imageUrls,
+//             area: req.body.area,
+//             description: req.body.description,
+//             city: req.body.city || null,
+//             email,
+//             password: hashedPassword,
+//             status,
+//             brandsNew: newBrandNew._id, // Save reference to BrandsNew
+//         });
+
+//         // Save the brand to the database
+//         await brand.save();
+//         res.status(201).json(brand);
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// };
+
+
 exports.addBrand = async (req, res) => {
-    const { email, password, brandNewData } = req.body; 
     try {
-        // Check if the brand with the provided email already exists
+        const { email, password, brandNewData, package, pincode, packageAmount } = req.body;
+        let { productCategory } = req.body;
+
+        // Check if the brand already exists
         const existingBrand = await Brands.findOne({ email });
         if (existingBrand) {
-            return res.status(400).json({ msg: 'Brand already exists' });
+            return res.status(400).json({ msg: "Brand already exists" });
         }
+
+        // Ensure `productCategory` is properly formatted
+        if (typeof productCategory === "string") {
+            try {
+                productCategory = JSON.parse(productCategory); // Convert from string if sent as JSON string
+            } catch (error) {
+                return res.status(400).json({ msg: "Invalid productCategory format" });
+            }
+        }
+        if (!Array.isArray(productCategory)) {
+            return res.status(400).json({ msg: "productCategory must be an array" });
+        }
+
+        // ✅ Correct way to convert category IDs to ObjectId
+        productCategory = productCategory.map((id) => new mongoose.Types.ObjectId(id));
 
         // Hash the password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // Upload images to S3
-        const imageUrls = await uploadImagesToS3(req.files);
+        const imageUrls = req.files ? await uploadImagesToS3(req.files) : [];
 
-        // Create the new BrandsNew document
+        // Create new BrandsNew document
         const newBrandNew = new BrandsNew({
             name: brandNewData?.name,
-            image: brandNewData?.image, // You can upload this image to S3 too if necessary
+            image: brandNewData?.image,
         });
-        await newBrandNew.save(); // Save the BrandsNew document
+        await newBrandNew.save();
 
-        // Determine the status based on the user's role
-        const status = req.user && req.user.role === 'admin' ? 'approved' : 'pending';
+        // Set status based on user role
+        const status = req.user && req.user.role === "admin" ? "approved" : "pending";
 
-        // Create a new brand with the determined status
+        // Create the brand
         const brand = new Brands({
             name: req.body.name,
             images: imageUrls,
             area: req.body.area,
             description: req.body.description,
             city: req.body.city || null,
+            packageAmount,
+            pincode,
+            package,
+            productCategory, // ✅ Now correctly formatted as an array of ObjectId
             email,
             password: hashedPassword,
             status,
-            brandsNew: newBrandNew._id, // Save reference to BrandsNew
+            brandsNew: newBrandNew._id,
         });
 
-        // Save the brand to the database
         await brand.save();
         res.status(201).json(brand);
     } catch (error) {
@@ -79,34 +148,6 @@ exports.addBrand = async (req, res) => {
 };
 
 
-
-
-// exports.brandLogin = async (req, res) => {
-//     console.log("Working login...............")
-//     const { email, password } = req.body;
-//     const brand = await Brands.findOne({ email });
-//     if (!brand) {
-//         return res.status(400).json({ msg: 'Invalid credentials' });
-//     }
-//     const match = await bcrypt.compare(password, brand.password);
-//     if (!match)
-//         return res.status(400).json({ msg: 'Invalid credentials' });
-
-// const token = jwt.sign({ id: brand._id, role: brand.role }, process.env.JWT_SECRET);
-// res.json({ token,msg:"Login Store Successfully." ,role:brand.role});
-// }
-
-// exports.getOwnProfileBrands = async (req,res)=>{
-//     console.log("Working ")
-//     try{
-//         console.log("Working try")
-//         const ownBrands = await Brands.findById(req.user.id).select('-password').populate('selectedPackage');
-//         res.json(ownBrands);
-//     }
-//     catch (error) {
-//     res.status(500).json({ msg: 'Error fetching Brands profile', error });
-// }
-// }
 exports.brandLogin = async (req, res) => {
     console.log("Working login...............")
     const { email, password } = req.body;
@@ -133,93 +174,59 @@ exports.brandLogin = async (req, res) => {
     });
 }
 
+
 exports.getOwnProfileBrands = async (req, res) => {
-    const { id } = req.params;  // Get the ID from the route parameters
-
     try {
-        if (!id) {
-            return res.status(400).json({ msg: 'User ID is missing in the parameters' });
-        }
+        const { id } = req.params;
+        if (!id) return res.status(400).json({ msg: 'User ID is required' });
 
-        console.log("Working try");
-        const ownBrands = await Brands.findById(id)  // Use the ID from the route params
-            .select('-password')  
-            .populate('selectedPackage'); 
+        const ownBrands = await Brands.findById(id)
+            .select('-password')
+            .populate('brandsNew productCategory');
 
-        if (!ownBrands) {
-            return res.status(404).json({ msg: 'Brands not found for this user' });
-        }
+        if (!ownBrands) return res.status(404).json({ msg: 'Brands not found for this user' });
 
-        res.json(ownBrands);
+        res.status(200).json(ownBrands);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ msg: 'Error fetching Brands profile', error });
+        res.status(500).json({ error: error.message });
     }
 };
 
-// exports.getOwnProfileBrands = async (req, res) => {
-//     console.log("Working");
-
-//     try {
-       
-//         if (!req.user || !req.user.id) {
-//             return res.status(400).json({ msg: 'User not authenticated or user ID is missing' });
-//         }
-
-//         console.log("Working try");
-//         const ownBrands = await Brands.findById(req.user.id)
-//             .select('-password')  
-//             .populate('selectedPackage'); 
-
-//         if (!ownBrands) {
-//             return res.status(404).json({ msg: 'Brands not found for this user' });
-//         }
-
-        
-//         res.json(ownBrands);
-//     } catch (error) {
-//         // Catch any other errors
-//         console.error(error);
-//         res.status(500).json({ msg: 'Error fetching Brands profile', error });
-//     }
-// };
-
-
 exports.updateOwnProfileBrands = async (req, res) => {
     try {
-        const brand = await Brands.findById(req.user.id).populate('brandsNew'); // Populate the BrandsNew reference
+        const brand = await Brands.findById(req.user.id).populate('brandsNew');
         if (!brand) return res.status(404).json({ error: 'Brand not found' });
 
-        // Handle file upload for the brand images
         if (req.files && req.files.length > 0) {
-            brand.images = await uploadImagesToS3(req.files); // Ensure `uploadImagesToS3` handles array of files
+            brand.images = await uploadImagesToS3(req.files);
         }
 
-        // Update the main brand fields
         brand.name = req.body.name || brand.name;
         brand.area = req.body.area || brand.area;
         brand.description = req.body.description || brand.description;
         brand.city = req.body.city || brand.city;
         brand.email = req.body.email || brand.email;
 
-        // Update the related BrandsNew document if necessary
-        if (req.body.brandNewData) {
-            // Assuming brandNewData contains fields like name and image
-            const { name, image } = req.body.brandNewData;
+        if (req.body.productCategory) {
+            try {
+                const parsedCategories = typeof req.body.productCategory === "string" ? JSON.parse(req.body.productCategory) : req.body.productCategory;
+                if (!Array.isArray(parsedCategories)) throw new Error('productCategory must be an array');
+                brand.productCategory = parsedCategories.map(id => new mongoose.Types.ObjectId(id));
+            } catch (error) {
+                return res.status(400).json({ msg: 'Invalid productCategory format' });
+            }
+        }
 
-            // If there's no BrandsNew document associated, create one
+        if (req.body.brandNewData) {
+            const { name, image } = req.body.brandNewData;
             if (!brand.brandsNew) {
-                const newBrandNew = new BrandsNew({
-                    name,
-                    image, // You can upload this image to S3 if necessary
-                });
+                const newBrandNew = new BrandsNew({ name, image });
                 await newBrandNew.save();
-                brand.brandsNew = newBrandNew._id; // Save the reference to the BrandsNew document
+                brand.brandsNew = newBrandNew._id;
             } else {
-                // Update the existing BrandsNew document
                 brand.brandsNew.name = name || brand.brandsNew.name;
-                brand.brandsNew.image = image || brand.brandsNew.image; // Upload image to S3 if needed
-                await brand.brandsNew.save(); // Save the updated BrandsNew
+                brand.brandsNew.image = image || brand.brandsNew.image;
+                await brand.brandsNew.save();
             }
         }
 
@@ -232,22 +239,16 @@ exports.updateOwnProfileBrands = async (req, res) => {
 
 exports.getAllBrands = async (req, res) => {
     try {
-        const { page = 1, limit = 10, search = "" } = req.query; // Default to page 1, limit 10, and no search
+        const { page = 1, limit = 10, search = "" } = req.query;
+        const searchQuery = search ? { name: { $regex: search, $options: 'i' } } : {};
 
-        // Build the search query
-        const searchQuery = search ? {
-            name: { $regex: search, $options: 'i' } // case-insensitive search for name
-        } : {};
-
-        // Fetch brands with pagination, search, and populate brandsNew
         const brands = await Brands.find(searchQuery)
-            .skip((page - 1) * limit)  // Skip based on current page and limit
-            .limit(Number(limit))      // Limit the number of results per page
-            .populate('brandsNew');     // Populate the 'brandsNew' reference
+            .skip((page - 1) * limit)
+            .limit(Number(limit))
+            .populate('brandsNew productCategory');
 
-        const totalBrands = await Brands.countDocuments(searchQuery); // Get total count of brands for pagination info
+        const totalBrands = await Brands.countDocuments(searchQuery);
 
-        // Return the paginated brands along with total count for pagination
         res.status(200).json({
             brands,
             totalBrands,
@@ -259,10 +260,9 @@ exports.getAllBrands = async (req, res) => {
     }
 };
 
-
 exports.getBrandById = async (req, res) => {
     try {
-        const brand = await Brands.findById(req.params.id).populate('brandsNew');
+        const brand = await Brands.findById(req.params.id).populate('brandsNew productCategory');
         if (!brand) return res.status(404).json({ error: 'Brand not found' });
         res.status(200).json(brand);
     } catch (error) {
@@ -270,47 +270,40 @@ exports.getBrandById = async (req, res) => {
     }
 };
 
-// Update brand by ID with multiple images
 exports.updateBrandById = async (req, res) => {
     try {
-        const brand = await Brands.findById(req.params.id).populate('brandsNew'); // Populate the BrandsNew reference
+        const brand = await Brands.findById(req.params.id).populate('brandsNew');
         if (!brand) return res.status(404).json({ error: 'Brand not found' });
 
-        // Check if status is provided in the request body and update it
-        if (req.body.status) {
-            brand.status = req.body.status;
-        }
+        if (req.body.status) brand.status = req.body.status;
+        if (req.files) brand.images = await uploadImagesToS3(req.files);
 
-        // If there are images, upload them to S3
-        if (req.files) {
-            brand.images = await uploadImagesToS3(req.files);
-        }
-
-        // Update the main brand fields
         brand.name = req.body.name || brand.name;
         brand.area = req.body.area || brand.area;
         brand.description = req.body.description || brand.description;
         brand.city = req.body.city || brand.city;
         brand.email = req.body.email || brand.email;
 
-        // Update the related BrandsNew document if necessary
-        if (req.body.brandNewData) {
-            // Assuming brandNewData contains fields like name and image
-            const { name, image } = req.body.brandNewData;
+        if (req.body.productCategory) {
+            try {
+                const parsedCategories = typeof req.body.productCategory === "string" ? JSON.parse(req.body.productCategory) : req.body.productCategory;
+                if (!Array.isArray(parsedCategories)) throw new Error('productCategory must be an array');
+                brand.productCategory = parsedCategories.map(id => new mongoose.Types.ObjectId(id));
+            } catch (error) {
+                return res.status(400).json({ msg: 'Invalid productCategory format' });
+            }
+        }
 
-            // If there's no BrandsNew document associated, create one
+        if (req.body.brandNewData) {
+            const { name, image } = req.body.brandNewData;
             if (!brand.brandsNew) {
-                const newBrandNew = new BrandsNew({
-                    name,
-                    image, // You can upload this image to S3 if necessary
-                });
+                const newBrandNew = new BrandsNew({ name, image });
                 await newBrandNew.save();
-                brand.brandsNew = newBrandNew._id; // Save the reference to the BrandsNew document
+                brand.brandsNew = newBrandNew._id;
             } else {
-                // Update the existing BrandsNew document
                 brand.brandsNew.name = name || brand.brandsNew.name;
-                brand.brandsNew.image = image || brand.brandsNew.image; // Upload image to S3 if needed
-                await brand.brandsNew.save(); // Save the updated BrandsNew
+                brand.brandsNew.image = image || brand.brandsNew.image;
+                await brand.brandsNew.save();
             }
         }
 
@@ -320,6 +313,7 @@ exports.updateBrandById = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 
 exports.deleteBrandById = async (req, res) => {
