@@ -14,11 +14,11 @@ const CategorySchema = new mongoose.Schema({
         type: String,
         required: true,
  },
- brands: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Brands',
-    required: true,
-}],
+//  brands: [{
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: 'Brands',
+//     required: true,
+// }],
 }, { timestamps: true });
 
 const Category = mongoose.model('Category', CategorySchema);

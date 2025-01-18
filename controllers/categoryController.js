@@ -9,7 +9,7 @@ const s3Client = new S3Client({
 });
 
 const addCategory = async (req, res) => {
-    const { categoryName, description, brands } = req.body;
+    const { categoryName, description } = req.body;
     const files = req.files; // Handle multiple files
 
     if (!categoryName || !description || !files || files.length === 0) {
@@ -35,7 +35,7 @@ const addCategory = async (req, res) => {
             categoryName,
             images: imageUrls,
             description,
-            brands,
+         
         });
 
         await category.save();
@@ -55,7 +55,6 @@ const getAllCategories = async (req, res) => {
 
     try {
         const categories = await Category.find(query)
-            .populate('brands') // Populates brand details if required
             .limit(limit)
             .skip((page - 1) * limit)
             .exec();
@@ -76,7 +75,7 @@ const getCategoryById = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const category = await Category.findById(id).populate('brands');
+        const category = await Category.findById(id)
         if (!category) {
             return res.status(404).json({ msg: 'Category not found' });
         }
@@ -89,10 +88,10 @@ const getCategoryById = async (req, res) => {
 
 const updateCategoryById = async (req, res) => {
     const { id } = req.params;
-    const { categoryName, description, brands } = req.body;
+    const { categoryName, description } = req.body;
     const files = req.files;
 
-    const updateData = { categoryName, description, brands };
+    const updateData = { categoryName, description };
 
     if (files && files.length > 0) {
         try {

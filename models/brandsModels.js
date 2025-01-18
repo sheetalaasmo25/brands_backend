@@ -18,6 +18,10 @@ const brandsSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    pincode: {
+        type: Number,
+        required: true,
+    },
     description: {
         type: String,
         required: true,
