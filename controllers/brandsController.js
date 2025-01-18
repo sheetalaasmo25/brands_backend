@@ -151,7 +151,7 @@ exports.addBrand = async (req, res) => {
 exports.brandLogin = async (req, res) => {
     console.log("Working login...............")
     const { email, password } = req.body;
-    const brand = await Brands.findOne({ email });
+    const brand = await Brands.findOne({ email }).populate('package');;
     
     if (!brand) {
         return res.status(400).json({ msg: 'Invalid credentials' });
@@ -170,7 +170,8 @@ exports.brandLogin = async (req, res) => {
         token,
         msg: "Login Store Successfully.",
         role: brand.role,
-        _id: brand._id  // Adding _id to the response
+        _id: brand._id,
+        package: brand.package
     });
 }
 
