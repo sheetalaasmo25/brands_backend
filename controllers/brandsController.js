@@ -174,21 +174,27 @@ exports.brandLogin = async (req, res) => {
     });
 }
 
-
 exports.getOwnProfileBrands = async (req, res) => {
+    const { id } = req.params;  // Get the ID from the route parameters
+
     try {
-        const { id } = req.params;
-        if (!id) return res.status(400).json({ msg: 'User ID is required' });
+        if (!id) {
+            return res.status(400).json({ msg: 'User ID is missing in the parameters' });
+        }
 
-        const ownBrands = await Brands.findById(id)
-            .select('-password')
-            .populate('brandsNew productCategory');
+        console.log("Working try");
+        const ownBrands = await Brands.findById(id)  // Use the ID from the route params
+            .select('-password')  
+            .populate('brandsNew productCategory package');
 
-        if (!ownBrands) return res.status(404).json({ msg: 'Brands not found for this user' });
+        if (!ownBrands) {
+            return res.status(404).json({ msg: 'Brands not found for this user' });
+        }
 
-        res.status(200).json(ownBrands);
+        res.json(ownBrands);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error(error);
+        res.status(500).json({ msg: 'Error fetching Brands profile', error });
     }
 };
 
@@ -197,28 +203,41 @@ exports.updateOwnProfileBrands = async (req, res) => {
         const brand = await Brands.findById(req.user.id).populate('brandsNew');
         if (!brand) return res.status(404).json({ error: 'Brand not found' });
 
+        // Handle file upload for images
         if (req.files && req.files.length > 0) {
             brand.images = await uploadImagesToS3(req.files);
         }
 
+        // Update brand details
         brand.name = req.body.name || brand.name;
         brand.area = req.body.area || brand.area;
         brand.description = req.body.description || brand.description;
         brand.city = req.body.city || brand.city;
         brand.email = req.body.email || brand.email;
+        brand.packageAmount = req.body.packageAmount || brand.packageAmount;
+        brand.pincode = req.body.pincode || brand.pincode;
+        brand.package = req.body.package || brand.package;
 
+        // Handle `productCategory` update
         if (req.body.productCategory) {
-            try {
-                const parsedCategories = typeof req.body.productCategory === "string" ? JSON.parse(req.body.productCategory) : req.body.productCategory;
-                if (!Array.isArray(parsedCategories)) throw new Error('productCategory must be an array');
-                brand.productCategory = parsedCategories.map(id => new mongoose.Types.ObjectId(id));
-            } catch (error) {
-                return res.status(400).json({ msg: 'Invalid productCategory format' });
+            let { productCategory } = req.body;
+            if (typeof productCategory === 'string') {
+                try {
+                    productCategory = JSON.parse(productCategory);
+                } catch (error) {
+                    return res.status(400).json({ msg: "Invalid productCategory format" });
+                }
             }
+            if (!Array.isArray(productCategory)) {
+                return res.status(400).json({ msg: "productCategory must be an array" });
+            }
+            brand.productCategory = productCategory.map(id => new mongoose.Types.ObjectId(id));
         }
 
+        // Handle `brandsNew` update
         if (req.body.brandNewData) {
             const { name, image } = req.body.brandNewData;
+
             if (!brand.brandsNew) {
                 const newBrandNew = new BrandsNew({ name, image });
                 await newBrandNew.save();
@@ -237,18 +256,25 @@ exports.updateOwnProfileBrands = async (req, res) => {
     }
 };
 
+
 exports.getAllBrands = async (req, res) => {
     try {
-        const { page = 1, limit = 10, search = "" } = req.query;
-        const searchQuery = search ? { name: { $regex: search, $options: 'i' } } : {};
+        const { page = 1, limit = 10, search = "" } = req.query; // Default to page 1, limit 10, and no search
 
+        // Build the search query
+        const searchQuery = search ? {
+            name: { $regex: search, $options: 'i' } // case-insensitive search for name
+        } : {};
+
+        // Fetch brands with pagination, search, and populate brandsNew
         const brands = await Brands.find(searchQuery)
-            .skip((page - 1) * limit)
-            .limit(Number(limit))
-            .populate('brandsNew productCategory');
+            .skip((page - 1) * limit)  // Skip based on current page and limit
+            .limit(Number(limit))      // Limit the number of results per page
+            .populate('brandsNew productCategory package');   // Populate the 'brandsNew' reference
 
-        const totalBrands = await Brands.countDocuments(searchQuery);
+        const totalBrands = await Brands.countDocuments(searchQuery); // Get total count of brands for pagination info
 
+        // Return the paginated brands along with total count for pagination
         res.status(200).json({
             brands,
             totalBrands,
@@ -260,9 +286,10 @@ exports.getAllBrands = async (req, res) => {
     }
 };
 
+
 exports.getBrandById = async (req, res) => {
     try {
-        const brand = await Brands.findById(req.params.id).populate('brandsNew productCategory');
+        const brand = await Brands.findById(req.params.id).populate('brandsNew productCategory package');
         if (!brand) return res.status(404).json({ error: 'Brand not found' });
         res.status(200).json(brand);
     } catch (error) {
@@ -270,32 +297,52 @@ exports.getBrandById = async (req, res) => {
     }
 };
 
+// Update brand by ID with multiple images
 exports.updateBrandById = async (req, res) => {
     try {
         const brand = await Brands.findById(req.params.id).populate('brandsNew');
         if (!brand) return res.status(404).json({ error: 'Brand not found' });
 
-        if (req.body.status) brand.status = req.body.status;
-        if (req.files) brand.images = await uploadImagesToS3(req.files);
+        // Update status if provided
+        if (req.body.status) {
+            brand.status = req.body.status;
+        }
 
+        // Handle file upload for images
+        if (req.files && req.files.length > 0) {
+            brand.images = await uploadImagesToS3(req.files);
+        }
+
+        // Update brand details
         brand.name = req.body.name || brand.name;
         brand.area = req.body.area || brand.area;
         brand.description = req.body.description || brand.description;
         brand.city = req.body.city || brand.city;
         brand.email = req.body.email || brand.email;
+        brand.packageAmount = req.body.packageAmount || brand.packageAmount;
+        brand.pincode = req.body.pincode || brand.pincode;
+        brand.package = req.body.package || brand.package;
 
+        // Handle `productCategory` update
         if (req.body.productCategory) {
-            try {
-                const parsedCategories = typeof req.body.productCategory === "string" ? JSON.parse(req.body.productCategory) : req.body.productCategory;
-                if (!Array.isArray(parsedCategories)) throw new Error('productCategory must be an array');
-                brand.productCategory = parsedCategories.map(id => new mongoose.Types.ObjectId(id));
-            } catch (error) {
-                return res.status(400).json({ msg: 'Invalid productCategory format' });
+            let { productCategory } = req.body;
+            if (typeof productCategory === 'string') {
+                try {
+                    productCategory = JSON.parse(productCategory);
+                } catch (error) {
+                    return res.status(400).json({ msg: "Invalid productCategory format" });
+                }
             }
+            if (!Array.isArray(productCategory)) {
+                return res.status(400).json({ msg: "productCategory must be an array" });
+            }
+            brand.productCategory = productCategory.map(id => new mongoose.Types.ObjectId(id));
         }
 
+        // Handle `brandsNew` update
         if (req.body.brandNewData) {
             const { name, image } = req.body.brandNewData;
+
             if (!brand.brandsNew) {
                 const newBrandNew = new BrandsNew({ name, image });
                 await newBrandNew.save();

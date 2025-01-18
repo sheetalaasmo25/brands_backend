@@ -45,7 +45,7 @@ const brandsSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    productCategory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductCategory', required: true }], 
+    productCategory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true }], 
     brandsNew: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'BrandsNew',
