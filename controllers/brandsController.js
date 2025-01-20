@@ -141,7 +141,7 @@ exports.addBrand = async (req, res) => {
         });
 
         await brand.save();
-        res.status(201).json(brand);
+        res.status(201).json({ msg: "Store registered Successfully.",brand});
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
