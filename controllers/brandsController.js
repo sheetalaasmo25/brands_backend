@@ -251,7 +251,7 @@ exports.updateOwnProfileBrands = async (req, res) => {
         }
 
         await brand.save();
-        res.status(200).json(brand);
+        res.status(200).json({msg:"Brand or store updated successfully.",brand});
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
