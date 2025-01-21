@@ -82,7 +82,7 @@ async function uploadImagesToS3(files) {
 
 exports.addBrand = async (req, res) => {
     try {
-        const { email, password, brandNewData, package, pincode, packageAmount } = req.body;
+        const { email, password, package, pincode, packageAmount, brandsNew } = req.body;
         let { productCategory } = req.body;
 
         // Check if the brand already exists
@@ -103,8 +103,19 @@ exports.addBrand = async (req, res) => {
             return res.status(400).json({ msg: "productCategory must be an array" });
         }
 
-        // ✅ Correct way to convert category IDs to ObjectId
+        // Convert category IDs to ObjectId
         productCategory = productCategory.map((id) => new mongoose.Types.ObjectId(id));
+
+        // Validate `brandsNew`
+        if (!mongoose.Types.ObjectId.isValid(brandsNew)) {
+            return res.status(400).json({ msg: "Invalid brandsNew" });
+        }
+
+        // Check if `brandsNew` exists in the `BrandsNew` collection
+        const existingBrandsNew = await BrandsNew.findById(brandsNew);
+        if (!existingBrandsNew) {
+            return res.status(404).json({ msg: "BrandsNew ID not found" });
+        }
 
         // Hash the password
         const salt = await bcrypt.genSalt(10);
@@ -112,13 +123,6 @@ exports.addBrand = async (req, res) => {
 
         // Upload images to S3
         const imageUrls = req.files ? await uploadImagesToS3(req.files) : [];
-
-        // Create new BrandsNew document
-        const newBrandNew = new BrandsNew({
-            name: brandNewData?.name,
-            image: brandNewData?.image,
-        });
-        await newBrandNew.save();
 
         // Set status based on user role
         const status = req.user && req.user.role === "admin" ? "approved" : "pending";
@@ -133,19 +137,20 @@ exports.addBrand = async (req, res) => {
             packageAmount,
             pincode,
             package,
-            productCategory, // ✅ Now correctly formatted as an array of ObjectId
+            productCategory, // Correctly formatted as an array of ObjectId
             email,
             password: hashedPassword,
-            status,
-            brandsNew: newBrandNew._id,
+            brandsNew: brandsNew, // Store the reference to BrandsNew
+            status
         });
 
         await brand.save();
-        res.status(201).json({ msg: "Store registered Successfully.",brand});
+        res.status(201).json({ msg: "Store registered Successfully.", brand });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 
 exports.brandLogin = async (req, res) => {
@@ -201,7 +206,7 @@ exports.getOwnProfileBrands = async (req, res) => {
 
 exports.updateOwnProfileBrands = async (req, res) => {
     try {
-        const brand = await Brands.findById(req.user.id).populate('brandsNew');
+        const brand = await Brands.findById(req.user.id);
         if (!brand) return res.status(404).json({ error: 'Brand not found' });
 
         // Handle file upload for images
@@ -235,27 +240,29 @@ exports.updateOwnProfileBrands = async (req, res) => {
             brand.productCategory = productCategory.map(id => new mongoose.Types.ObjectId(id));
         }
 
-        // Handle `brandsNew` update
-        if (req.body.brandNewData) {
-            const { name, image } = req.body.brandNewData;
-
-            if (!brand.brandsNew) {
-                const newBrandNew = new BrandsNew({ name, image });
-                await newBrandNew.save();
-                brand.brandsNew = newBrandNew._id;
-            } else {
-                brand.brandsNew.name = name || brand.brandsNew.name;
-                brand.brandsNew.image = image || brand.brandsNew.image;
-                await brand.brandsNew.save();
+        // ✅ Properly Update `brandsNew` ID (Same as `addBrand` API)
+        if (req.body.brandsNew) {
+            if (!mongoose.Types.ObjectId.isValid(req.body.brandsNew)) {
+                return res.status(400).json({ msg: "Invalid brandsNew ID format" });
             }
+
+            // Check if `brandsNew` exists in `BrandsNew` collection
+            const existingBrandsNew = await BrandsNew.findById(req.body.brandsNew);
+            if (!existingBrandsNew) {
+                return res.status(404).json({ msg: "BrandsNew ID not found" });
+            }
+
+            // ✅ Store the new brandsNew ID
+            brand.brandsNew = new mongoose.Types.ObjectId(req.body.brandsNew);
         }
 
         await brand.save();
-        res.status(200).json({msg:"Brand or store updated successfully.",brand});
+        res.status(200).json({ msg: "Brand updated successfully.", brand });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 
 exports.getAllBrands = async (req, res) => {
@@ -301,13 +308,8 @@ exports.getBrandById = async (req, res) => {
 // Update brand by ID with multiple images
 exports.updateBrandById = async (req, res) => {
     try {
-        const brand = await Brands.findById(req.params.id).populate('brandsNew');
+        const brand = await Brands.findById(req.params.id);
         if (!brand) return res.status(404).json({ error: 'Brand not found' });
-
-        // Update status if provided
-        if (req.body.status) {
-            brand.status = req.body.status;
-        }
 
         // Handle file upload for images
         if (req.files && req.files.length > 0) {
@@ -340,23 +342,24 @@ exports.updateBrandById = async (req, res) => {
             brand.productCategory = productCategory.map(id => new mongoose.Types.ObjectId(id));
         }
 
-        // Handle `brandsNew` update
-        if (req.body.brandNewData) {
-            const { name, image } = req.body.brandNewData;
-
-            if (!brand.brandsNew) {
-                const newBrandNew = new BrandsNew({ name, image });
-                await newBrandNew.save();
-                brand.brandsNew = newBrandNew._id;
-            } else {
-                brand.brandsNew.name = name || brand.brandsNew.name;
-                brand.brandsNew.image = image || brand.brandsNew.image;
-                await brand.brandsNew.save();
+        // ✅ Properly Update `brandsNew` ID (Same as `addBrand` API)
+        if (req.body.brandsNew) {
+            if (!mongoose.Types.ObjectId.isValid(req.body.brandsNew)) {
+                return res.status(400).json({ msg: "Invalid brandsNew ID format" });
             }
+
+            // Check if `brandsNew` exists in `BrandsNew` collection
+            const existingBrandsNew = await BrandsNew.findById(req.body.brandsNew);
+            if (!existingBrandsNew) {
+                return res.status(404).json({ msg: "BrandsNew ID not found" });
+            }
+
+            // ✅ Store the new brandsNew ID
+            brand.brandsNew = new mongoose.Types.ObjectId(req.body.brandsNew);
         }
 
         await brand.save();
-        res.status(200).json(brand);
+        res.status(200).json({ msg: "Brand updated successfully.", brand });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

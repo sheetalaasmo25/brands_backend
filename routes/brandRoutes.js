@@ -10,7 +10,7 @@ const multer = require('multer');
 const packagesController = require('../controllers/packagesController');
 const storage = multer.memoryStorage(); // Store files in memory
 const upload = multer({ storage });
-
+router.get('/brandsnew',brandsNewController.getall);
 router.get('/package', packagesController.getallactivePackages); 
 router.post('/select-package/:packageId', packagesController.selectPackages);
 router.get('/getall-category',categoryController.getAllCategories);
@@ -22,7 +22,7 @@ router.get('/getown-profile-brands/:id',brandsController.getOwnProfileBrands);
 router.put('/updateown-profile', upload.array('images', 10),authMiddleware,storeMiddleware,brandsController.updateOwnProfileBrands);
 
 
-router.get('/brandsnew',authMiddleware,storeMiddleware, brandsNewController.getall);
+
 //add deals store
 router.post('/add-deals'  ,upload.single('image'),dealsController.addDeal);
 router.get('/getown-deals', authMiddleware,storeMiddleware,dealsController.getAllOwnDeals);
