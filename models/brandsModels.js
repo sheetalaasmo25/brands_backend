@@ -26,6 +26,14 @@ const brandsSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    latitude: {
+        type: String,
+        required: true,
+    },
+    longitude: {
+        type: String,
+        required: true,
+    },
     email: {
         type: String,
         required: true,

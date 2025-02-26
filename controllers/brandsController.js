@@ -132,6 +132,8 @@ exports.addBrand = async (req, res) => {
             name: req.body.name,
             images: imageUrls,
             area: req.body.area,
+            latitude:req.body.latitude,
+            longitude:req.body.latitude,
             description: req.body.description,
             city: req.body.city || null,
             packageAmount,
@@ -217,6 +219,8 @@ exports.updateOwnProfileBrands = async (req, res) => {
         // Update brand details
         brand.name = req.body.name || brand.name;
         brand.area = req.body.area || brand.area;
+        brand.latitude = req.body.latitude || brand.latitude;
+        brand.longitude = req.body.longitude || brand.longitude;
         brand.description = req.body.description || brand.description;
         brand.city = req.body.city || brand.city;
         brand.email = req.body.email || brand.email;
@@ -319,6 +323,8 @@ exports.updateBrandById = async (req, res) => {
         // Update brand details
         brand.name = req.body.name || brand.name;
         brand.area = req.body.area || brand.area;
+        brand.latitude = req.body.latitude || brand.latitude;
+        brand.longitude = req.body.longitude || brand.longitude;
         brand.description = req.body.description || brand.description;
         brand.city = req.body.city || brand.city;
         brand.email = req.body.email || brand.email;
