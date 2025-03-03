@@ -145,7 +145,7 @@ exports.addBrand = async (req, res) => {
             brandsNew: brandsNew, // Store the reference to BrandsNew
             status
         });
-
+console.log(req.body,"req.body")
         await brand.save();
         res.status(201).json({ msg: "Store registered Successfully.", brand });
     } catch (error) {
